@@ -69,7 +69,7 @@ router.post('/login', passport.authenticate('local', {session: false}), (req, re
       const token = signToken(_id);
       console.log(token);
       res.cookie('access_token', token, {httpOnly: true, sameSite: true});
-      res.status(200).json({isAuthenticated: true, user: {username}})
+      res.status(200).json({isAuthenticated: true, user: {username}, token:{token}})
   }
 });
 
