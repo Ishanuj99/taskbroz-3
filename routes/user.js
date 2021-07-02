@@ -67,8 +67,12 @@ router.post('/login', passport.authenticate('local', {session: false}), (req, re
   if(req.isAuthenticated()) {
       const {_id, username} = req.user;
       const token = signToken(_id);
+      const cookieConfig = { domain: '.herokuapp.com', secure: req.secure || req.headers['x-forwarded-proto'] === 'https' }
       console.log(token);
-      res.cookie('access_token', token, {httpOnly: true, sameSite: true});
+      res.cookie('access_token', token, {
+                  httpOnly: true, 
+                  sameSite: true, 
+                  ...cookieConfig});
       res.status(200).json({isAuthenticated: true, user: {username}, token:{token}})
   }
 });
