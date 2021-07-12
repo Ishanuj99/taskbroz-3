@@ -2,46 +2,26 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const userRouter = express.Router();
-const passport = require('passport');
-const passportConfig = require('../passport');
-const JWT = require('jsonwebtoken');
 const User = require("../models/user");
 
-const signToken = userID => {
-  return JWT.sign({
-      iss: "NoobCoder",
-      sub: userID
-  }, "NoobCoder", {expiresIn: "1h"});
-}
-
-router.post('/signup', (req, res) => {
-  const {username, password} = req.body;
-  User.findOne({username}, (err, user) => {
+router.post('/saveUser', (req, res) => {
+  const email = req.body;
+  User.findOne({email}, (err, user) => {
       if(err) {
         console.log(err)
           res.status(500).json({message: {msgBody: "Error has occured", msgError: true}})
       }
       if(user) {
-          res.status(400).json({message: {msgBody: "Username is already taken", msgError: true}})
+          res.status(400).json({message: {msgBody: "email is already taken", msgError: true}})
       }
       else {
           const user = new User({
             _id: new mongoose.Types.ObjectId(),
-            username: req.body.username,
             First_Name: req.body.First_Name,
             Last_Name: req.body.Last_Name,              
             email: req.body.email,
-            password: req.body.password,
-            Designation: req.body.Designation,
-            Department: req.body.Department,
-            Employee_code: req.body.Employee_code,
-            Office_Address:req.body.Office_Address,
             City:req.body.City,
-            State:req.body.State,
-            Pincode:req.body.Pincode
           });
           user
             .save()
@@ -61,42 +41,57 @@ router.post('/signup', (req, res) => {
       });
     })
 
-      
-
-router.post('/login', passport.authenticate('local', {session: false}), (req, res) => {
-  if(req.isAuthenticated()) {
-      const {_id, username} = req.user;
-      const token = signToken(_id);
-      const cookieConfig = { domain: '.herokuapp.com', secure: req.secure || req.headers['x-forwarded-proto'] === 'https' }
-      console.log(token);
-      res.cookie('access_token', token, {
-                  httpOnly: true, 
-                  sameSite: true, 
-                  ...cookieConfig});
-      res.status(200).json({isAuthenticated: true, user: {username}, token:{token}})
-  }
-});
-
-router.get('/logout', passport.authenticate('jwt', {session:false}), (req, res) => {
-  res.clearCookie('access_token');
-  res.json({user: {username: ''}, success: true});
-});
-
-
-router.delete("/:userId", (req, res, next) => {
-  User.deleteOne({ _id: req.params.userId })
+router.get('/getAllUser',(req, res, next)=>
+{
+    User.find()
     .exec()
-    .then(result => {
-      res.status(200).json({
-        message: "User deleted"
-      });
+    .then(docs =>{
+        const response = {
+            count: docs.length,
+            stats: docs.map(doc =>{
+                return {
+                    _id:doc.id,
+                    First_Name: doc.First_Name,
+                    Last_Name: doc.Last_Name,              
+                    email: doc.email,
+                    City:doc.City,
+                }
+            })
+        }
+        console.log(docs)
+        res.status(200).json(response)
     })
     .catch(err => {
-      console.log(err);
-      res.status(500).json({
-        error: err
+        console.log(err)
+        res.status(500).json({
+            error:err
+        })
+    })
+})
+      
+
+router.get("getAUser/:userId", (req, res, next)=>
+{
+    const id = req.params.userId;
+    Profile.findById(id)
+      .exec()
+      .then(doc => {
+        console.log("From database", doc);
+        if (doc) {
+          res.status(200).json({
+            product: doc
+          });
+        } else {
+          res
+            .status(404)
+            .json({ message: "No valid entry found for provided ID" });
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json({ error: err });
       });
-    });
-});
+  });
+
 
 module.exports = router;

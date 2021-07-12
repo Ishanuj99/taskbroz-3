@@ -6,40 +6,26 @@ const mongoose = require ('mongoose')
 const cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
-const statsRoutes= require('./routes/stats')
 const userRoutes = require('./routes/user')
 
 
-mongoose.connect('mongodb+srv://dbmongo19:arisha1234@covidhealthdatabase.6ds4n.mongodb.net/governmentdashboard',
+mongoose.connect('mongodb+srv://dbmongo19:arisha1234@covidhealthdatabase.6ds4n.mongodb.net/test',
     { useNewUrlParser: true,
       useUnifiedTopology: true,
       useCreateIndex:true
 })
 .catch(err => console.log(err))
 
-mongoose.Promise= global.Promise
+//mongoose.Promise= global.Promise
+
 
 app.use(morgan('dev'))
 app.use(express.urlencoded({extended:true}))
 app.use(express.json())
 
-app.use((req,res,next) => {
-    //res.header("Access-Control-Allow-Origin" ,'*');
-    res.header("Access-Control-Allow-Origin" ,req.header('origin'));
-    res.setHeader('Access-Control-Allow-Credentials',true);
-    res.header(
-        "Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept, Authentication"
-    )
-    if(req.method === 'OPTIONS') {
-        res.header('Access-Control-Allow-Metods', 'PUT,POST,PATCH,DELETE,GET')
-        return res.status(200).json({});
-    }
-    next();
-    })
+
 
 //Routes which should handle requests
-app.use('/stats', statsRoutes)
 app.use("/user",userRoutes)
 
 //Handling error requests
